@@ -14,7 +14,7 @@ Telegram --> Router (standalone bot, port 8799)
      (MCP server, random port each)
           |          |          |
      Claude A   Claude B   Claude C
-     ~/weather  ~/trading  ~/notes
+     ~/app      ~/api      ~/docs
 ```
 
 **Router** (`router.ts`) — standalone process that polls your Telegram bot, handles `/sessions` and `/switch` commands, gates senders via allowlist, and forwards messages to the active session over HTTP.
@@ -51,7 +51,7 @@ This prevents the official plugin from also polling the bot when you start Claud
 ### 2. Clone and install
 
 ```bash
-git clone https://github.com/YOUR_USERNAME/claude-code-multisession-channels.git
+git clone https://github.com/Agostinopisani19/claude-code-multisession-channels.git
 cd claude-code-multisession-channels
 bash install.sh
 ```
@@ -80,11 +80,11 @@ router: polling as @your_bot
 In separate terminals:
 
 ```bash
-SESSION_NAME=weather cd ~/weather-project && claude --dangerously-load-development-channels server:tg-session
+SESSION_NAME=frontend cd ~/my-app && claude --dangerously-load-development-channels server:tg-session
 ```
 
 ```bash
-SESSION_NAME=trading cd ~/trading-project && claude --dangerously-load-development-channels server:tg-session
+SESSION_NAME=backend cd ~/my-api && claude --dangerously-load-development-channels server:tg-session
 ```
 
 ## Telegram commands
