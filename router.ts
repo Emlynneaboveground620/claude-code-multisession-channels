@@ -702,14 +702,17 @@ const httpServer = Bun.serve({
         const name = body.name as string
         const port = body.port as number
         const pid = body.pid as number
-        // If name is taken by a live session, reject
-        if (state.sessions[name] && isSessionAlive(state.sessions[name])) {
+        // If name is taken by a DIFFERENT live session, reject
+        if (state.sessions[name] && isSessionAlive(state.sessions[name]) && state.sessions[name].pid !== pid) {
           return Response.json({ ok: false, error: `session "${name}" already registered (pid ${state.sessions[name].pid})` }, { status: 409 })
         }
-        state.sessions[name] = { name, port, pid, registeredAt: Date.now(), lastHeartbeat: Date.now() }
+        const isNew = !state.sessions[name] || state.sessions[name].pid !== pid
+        state.sessions[name] = { name, port, pid, registeredAt: state.sessions[name]?.registeredAt ?? Date.now(), lastHeartbeat: Date.now() }
         if (!state.activeSession) state.activeSession = name
         saveState()
-        process.stderr.write(`router: session "${name}" registered (port ${port}, pid ${pid})${state.activeSession === name ? ' [active]' : ''}\n`)
+        if (isNew) {
+          process.stderr.write(`router: session "${name}" registered (port ${port}, pid ${pid})${state.activeSession === name ? ' [active]' : ''}\n`)
+        }
         return Response.json({ ok: true, active: state.activeSession === name })
       }
 
