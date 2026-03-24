@@ -44,6 +44,60 @@ if (!TOKEN) {
   process.exit(1)
 }
 
+// ── Load router .env (Groq key etc.) ───────────────────────────────────────
+const ROUTER_ENV = join(ROUTER_DIR, '.env')
+try {
+  for (const line of readFileSync(ROUTER_ENV, 'utf8').split('\n')) {
+    const m = line.match(/^(\w+)=(.*)$/)
+    if (m && process.env[m[1]] === undefined) process.env[m[1]] = m[2]
+  }
+} catch {}
+
+const GROQ_API_KEY = process.env.GROQ_API_KEY
+
+// ── Voice transcription via Groq Whisper ───────────────────────────────────
+async function transcribeAudio(filePath: string): Promise<string | null> {
+  if (!GROQ_API_KEY) return null
+  try {
+    const fileData = readFileSync(filePath)
+    const blob = new Blob([fileData])
+    const formData = new FormData()
+    formData.append('file', blob, 'voice.ogg')
+    formData.append('model', 'whisper-large-v3')
+    const res = await fetch('https://api.groq.com/openai/v1/audio/transcriptions', {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${GROQ_API_KEY}` },
+      body: formData,
+    })
+    if (!res.ok) {
+      process.stderr.write(`router: transcription failed: HTTP ${res.status}\n`)
+      return null
+    }
+    const data = await res.json() as { text?: string }
+    return data.text ?? null
+  } catch (err) {
+    process.stderr.write(`router: transcription error: ${err}\n`)
+    return null
+  }
+}
+
+async function downloadTelegramFile(fileId: string): Promise<string | null> {
+  try {
+    const file = await bot.api.getFile(fileId)
+    if (!file.file_path) return null
+    const url = `https://api.telegram.org/file/bot${TOKEN}/${file.file_path}`
+    const res = await fetch(url)
+    const buf = Buffer.from(await res.arrayBuffer())
+    const ext = file.file_path.split('.').pop() ?? 'ogg'
+    const path = join(INBOX_DIR, `${Date.now()}-voice.${ext}`)
+    mkdirSync(INBOX_DIR, { recursive: true })
+    writeFileSync(path, buf)
+    return path
+  } catch {
+    return null
+  }
+}
+
 // ── Error handlers ─────────────────────────────────────────────────────────
 process.on('unhandledRejection', err => {
   process.stderr.write(`router: unhandled rejection: ${err}\n`)
@@ -531,14 +585,35 @@ bot.on('message:document', async ctx => {
 
 bot.on('message:voice', async ctx => {
   const v = ctx.message.voice
-  await handleInbound(ctx, ctx.message.caption ?? '(voice message)', undefined, {
+  // Try to transcribe via Groq Whisper
+  let text = ctx.message.caption ?? '(voice message)'
+  if (GROQ_API_KEY) {
+    const filePath = await downloadTelegramFile(v.file_id)
+    if (filePath) {
+      const transcription = await transcribeAudio(filePath)
+      if (transcription) {
+        text = `[voice] ${transcription}`
+      }
+    }
+  }
+  await handleInbound(ctx, text, undefined, {
     kind: 'voice', file_id: v.file_id, size: v.file_size, mime: v.mime_type,
   })
 })
 
 bot.on('message:audio', async ctx => {
   const a = ctx.message.audio
-  await handleInbound(ctx, ctx.message.caption ?? `(audio: ${safeName(a.file_name) ?? 'audio'})`, undefined, {
+  let text = ctx.message.caption ?? `(audio: ${safeName(a.file_name) ?? 'audio'})`
+  if (GROQ_API_KEY) {
+    const filePath = await downloadTelegramFile(a.file_id)
+    if (filePath) {
+      const transcription = await transcribeAudio(filePath)
+      if (transcription) {
+        text = `[audio] ${transcription}`
+      }
+    }
+  }
+  await handleInbound(ctx, text, undefined, {
     kind: 'audio', file_id: a.file_id, size: a.file_size, mime: a.mime_type, name: safeName(a.file_name),
   })
 })
